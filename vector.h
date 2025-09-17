@@ -1,6 +1,8 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
+#include <ostream>
+
 // PC1: deben hacer:
 //      2 problemas de nivel 2
 //      3 problemas de nivel 1
@@ -104,11 +106,24 @@ void CVector<T>::insert(T &elem){
     m_pVect[m_count++] = elem;
 }
 
-
+// TODO  (Nivel 1) habilitar el uso de []
 template <typename T>
 T& CVector<T>::operator[](size_t index)
 {
     return m_pVect[index];
+}
+
+
+// TODO  (Nivel 2) habilitar que el vector pueda ser escrito con cout <<
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const CVector<T>& v)
+{
+    for (size_t i = 0; i < v.m_count; ++i)
+    {
+        os << v.m_pVect[i] << " ";
+    }
+
+    return os;
 }
 
 #endif // __VECTOR_H__
