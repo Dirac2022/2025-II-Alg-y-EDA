@@ -34,6 +34,10 @@ public:
     virtual ~CVector();
     void insert(T &elem);
     void resize();
+
+    T& operator[](size_t index);
+
+    
 };
 
 template <typename T>
@@ -98,6 +102,13 @@ void CVector<T>::insert(T &elem){
     if(m_count == m_max)
         resize();
     m_pVect[m_count++] = elem;
+}
+
+
+template <typename T>
+T& CVector<T>::operator[](size_t index)
+{
+    return m_pVect[index];
 }
 
 #endif // __VECTOR_H__
