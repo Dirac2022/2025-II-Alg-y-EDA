@@ -20,17 +20,15 @@ class CVector{
     size_t  m_count = 0; // How many elements we have now?
     size_t  m_max   = 0; // Max capacity
 
-    double growthFactor = 2.0 // For growth delta - TODO (Nivel 1)
+    double m_growthFactor = 2.0; // For growth delta - TODO (Nivel 1)
 
 public:
     // TODO  (Nivel 1) Agregar un constructor por copia
-    CVector(CVector &v);
-
-    CVector(const CVector& sourceObject);
+    CVector(const CVector &v);
 
     CVector(size_t n);
     // TODO  (Nivel 2): Agregar un move constructor
-    CVector(CVector &&v);
+    CVector(const CVector &&v);
 
     // TODO: (Nivel 1) implementar el destructor de forma segura
     virtual ~CVector();
@@ -44,22 +42,34 @@ CVector<T>::CVector(size_t n){
 }
 
 template <typename T>
-CVector<T>::CVector(const CVector<T>& sourceObject)
-    : m_count(sourceObject.m_count), 
-    m_max(sourceObject.m_max), 
-    growthFactor(sourceObject.growthFactor)
+CVector<T>::CVector(const CVector<T>& v)
+    : m_count(v.m_count), 
+    m_max(v.m_max), 
+    m_growthFactor(v.m_growthFactor)
 {
     m_pVect = new T[m_max];
 
     for (size_t i = 0; i < m_count; ++i) {
-        m_pVect[i] = sourceObject.m_pVect[i];
+        m_pVect[i] = v.m_pVect[i];
     }
+}
+
+template <typename T>
+CVector<T>::CVector(const CVector<T>&& v)
+    : m_pVect(v.m_pVect),
+      m_count(v.m_count),
+      m_max(v.m_max),
+      m_growthFactor(v.m_growthFactor)
+{
+    v.m_count = 0;
+    v.m_max = 0;
+    v.m_pVect = nullptr;
 }
 
 template <typename T>
 CVector<T>::~CVector()
 {
-    if (m_pVect != nullprt) {
+    if (m_pVect != nullptr) {
         delete[] m_pVect;
         m_pVect = nullptr;
     }
@@ -73,7 +83,7 @@ CVector<T>::~CVector()
 template <typename T>
 void CVector<T>::resize(){
 
-    size_t new_max = (n_max == 0) ? 10 : static_cast<size_t>(n_max * growthFactor);
+    size_t new_max = (n_max == 0) ? 10 : static_cast<size_t>(n_max * m_growthFactor);
     T *pTmp = new T[new_max];
     for(auto i=0; i < m_max ; ++i)
         pTmp[i] = std::move(m_pVect[i]); // Refactor using std::move
