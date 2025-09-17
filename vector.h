@@ -26,6 +26,8 @@ public:
     // TODO  (Nivel 1) Agregar un constructor por copia
     CVector(CVector &v);
 
+    CVector(const CVector& sourceObject);
+
     CVector(size_t n);
     // TODO  (Nivel 2): Agregar un move constructor
     CVector(CVector &&v);
@@ -39,6 +41,19 @@ public:
 template <typename T>
 CVector<T>::CVector(size_t n){
 
+}
+
+template <typename T>
+CVector<T>::CVector(const CVector<T>& sourceObject)
+    : m_count(sourceObject.m_count), 
+    m_max(sourceObject.m_max), 
+    growthFactor(sourceObject.growthFactor)
+{
+    m_pVect = new T[m_max];
+
+    for (size_t i = 0; i < m_count; ++i) {
+        m_pVect[i] = sourceObject.m_pVect[i];
+    }
 }
 
 template <typename T>
