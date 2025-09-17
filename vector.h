@@ -2,6 +2,7 @@
 #define __VECTOR_H__
 #include <algorithm>
 
+// TODO (Nivel 2): Agregar Iterators (forward, backward)
 template <typename Container>
 class vector_forward_iterator{
 private:
@@ -25,8 +26,6 @@ public:
 // Cada solucion enviarla como un Pull request
 
 // TODO (Nivel 2): Agregar Traits
-
-// TODO (Nivel 2): Agregar Iterators (forward, backward)
 
 // TODO (Nivel 1): Agregar Documentacion para generar con doxygen
 
