@@ -6,17 +6,17 @@
 template <typename Container>
 class vector_forward_iterator{
 private:
-    using value_type = Container::value_type;
-    using MyType = vector_forward_iterator<Container>;
+    using value_type = typename Container::value_type;
+    using myself     = vector_forward_iterator<Container>;
 
     value_type *m_pValue = nullptr;
 public:
     vector_forward_iterator(Container &container, value_type &pValue);
-    vector_forward_iterator(MyType &other);
+    vector_forward_iterator(myself &other);
 
     value_type& operator*();
-    MyType      operator++();
-    MyType     &operator=(MyType &other);
+    myself      operator++();
+    myself     &operator=(myself &other);
     bool        operator!=(vector_forward_iterator<Container> &other);
 };
 
@@ -35,8 +35,8 @@ class CVector{
    
     using  value_type = T;
     value_type   *m_pVect = nullptr;
-    using MyType = CVector<value_type>;
-    using iterator = vector_forward_iterator<MyType>;
+    using myself = CVector<value_type>;
+    using iterator = vector_forward_iterator<myself>;
 
     size_t  m_count = 0; // How many elements we have now?
     size_t  m_max   = 0; // Max capacity
