@@ -2,8 +2,10 @@
 #include <fstream>
 #include <vector>
 #include <utility> // para std::pair
+
 #include "linkedlist.h"
 #include "doublelinkedlist.h"
+#include "binarytree.h"
 #include "foreach.h"
 #include "types.h"
 #include "util.h"
@@ -56,15 +58,50 @@ void DemoDoubleLinkedList(){
     std::vector< std::pair<T1, Ref> > v1 = {
         {4, 8}, {2, 5}, {7, 3}, {1, 9}, {5, 2}
     };
+
+    std::cout << "Demo Double Linked List" << std::endl;
+
     CDoubleLinkedList< AscendingTrait<T1> > l1;
     for (auto &par : v1)
         l1.Insert(par.first, par.second);
     std::cout << l1 << std::endl;
 
-    std::cout << " Imprimiendo DoubleLinkedList ..." << std::endl;
+    std::cout << "Imprimiendo con forward iterator" << std::endl;
     foreach(l1. begin(), l1. end(), ::Print<T1>);
-    std::cout <<endl;
-    std::cout << " Imprimiendo DoubleLinkedList reverso..." << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Imprimiendo con backward iterator" << std::endl;
     foreach(l1.rbegin(), l1.rend(), ::Print<T1>);
-    std::cout <<endl;
+}
+
+void DemoBinaryTree(){
+    std::vector< std::pair<T1, Ref> > v1 = {
+        {4, 8}, {2, 5}, {7, 3}, {1, 9}, {5, 2}
+    };
+    CBinaryTree< AscendingTrait<T1> > t1;
+    for (auto &par : v1)
+        t1.insert(par.first, par.second);
+    std::cout << t1 << std::endl;
+
+    std::cout << "Inorder traversal:" << std::endl;
+    // t1.inorder();
+    std::cout << std::endl;
+
+    std::cout << "Preorder traversal:" << std::endl;
+    // t1.preorder();
+    std::cout << std::endl;
+
+    std::cout << "Postorder traversal:" << std::endl;
+    // t1.postorder();
+    std::cout << std::endl;
+
+    std::cout << "Tree structure:" << std::endl;
+    // t1.print();
+    std::cout << std::endl;
+
+    std::cout << "Inorder traversal using foreach:" << std::endl;
+    // t1.inorder( ::Print<T1> );
+    std::cout << std::endl;
+
+    // Next classes: AVL, BTree
 }
