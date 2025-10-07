@@ -95,7 +95,6 @@ class backward_double_linkedlist_iterator{
 
 // TODO Agregar control de concurrencia
 
-// TODO Agregar que sea ascendente o descendente con el mismo codigo
 template <typename Traits>
 class CDoubleLinkedList{
 public:
@@ -117,7 +116,7 @@ public:
     CDoubleLinkedList();
     CDoubleLinkedList(CDoubleLinkedList &other);
 
-    // TODO: Done
+    // TODO: Done Move Constructor
     CDoubleLinkedList(CDoubleLinkedList &&other);
 
     // Destructor seguro
@@ -132,7 +131,7 @@ public:
     forward_iterator begin(){ return forward_iterator(this, m_pRoot); };
     forward_iterator end()  { return forward_iterator(this, nullptr); } 
 
-    // TODO: verifricar donde debe comenzar apuntando el iterator reverso
+    // TODO: Done verifricar donde debe comenzar apuntando el iterator reverso
     backward_iterator rbegin(){ return backward_iterator(this, m_pTail); };
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
@@ -157,19 +156,18 @@ void CDoubleLinkedList<Traits>::Insert(value_type &elem, Ref ref){
     InternalInsert(m_pRoot, elem, ref);
 }
 
-// TODO: Agregar el enlace para el Prev()
+// TODO: Done Agregar el enlace para el Prev()
 template <typename Traits>
 void CDoubleLinkedList<Traits>::InternalInsert(Node *&rParent, value_type &elem, Ref ref){
     if( !rParent || m_fCompare(elem, rParent->GetDataRef()) ){
-
         Node *pNew = rParent = new Node(elem, ref, rParent);
         if( !pNew->GetNext() ) // Final de la lista
-            pTail = pNew;
+            m_pTail = pNew;
 
         // Puente hacia atras
         Node *pNext = pNew->GetNext();
         if( pNext ){ // Hay algo a continuacion
-            pNew ->SetPrev( pNext()->GetPrev() );
+            pNew ->SetPrev( pNext->GetPrev() );
             pNext->SetPrev( pNew ); 
         }
         m_nElem++;

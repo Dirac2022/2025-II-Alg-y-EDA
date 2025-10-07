@@ -63,6 +63,8 @@ void DemoDoubleLinkedList(){
 
     std::cout << " Imprimiendo DoubleLinkedList ..." << std::endl;
     foreach(l1. begin(), l1. end(), ::Print<T1>);
-
+    std::cout <<endl;
+    std::cout << " Imprimiendo DoubleLinkedList reverso..." << std::endl;
     foreach(l1.rbegin(), l1.rend(), ::Print<T1>);
+    std::cout <<endl;
 }
