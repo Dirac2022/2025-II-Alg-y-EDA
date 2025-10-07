@@ -78,30 +78,38 @@ void DemoBinaryTree(){
     std::vector< std::pair<T1, Ref> > v1 = {
         {4, 8}, {2, 5}, {7, 3}, {1, 9}, {5, 2}
     };
-    CBinaryTree< AscendingTrait<T1> > t1;
+    CBinaryTree< AscendingTrait<T1> > bt;
     for (auto &par : v1)
-        t1.insert(par.first, par.second);
-    std::cout << t1 << std::endl;
+        bt.insert(par.first, par.second);
+    std::cout << bt << std::endl;
 
     std::cout << "Inorder traversal:" << std::endl;
-    // t1.inorder();
+    // bt.inorder();
     std::cout << std::endl;
 
     std::cout << "Preorder traversal:" << std::endl;
-    // t1.preorder();
+    // bt.preorder();
     std::cout << std::endl;
 
     std::cout << "Postorder traversal:" << std::endl;
-    // t1.postorder();
+    // bt.postorder();
     std::cout << std::endl;
 
     std::cout << "Tree structure:" << std::endl;
-    // t1.print();
+    // bt.print();
     std::cout << std::endl;
 
-    std::cout << "Inorder traversal using foreach:" << std::endl;
-    // t1.inorder( ::Print<T1> );
-    std::cout << std::endl;
+    // std::cout << "Imprimiendo con forward iterator" << std::endl;
+    // foreach(bt. begin(), bt. end(), ::Print<T1>);
+    // std::cout << std::endl;
+
+    // std::cout << "Imprimiendo con backward iterator" << std::endl;
+    // foreach(bt.rbegin(), bt.rend(), ::Print<T1>);
+    // std::cout << std::endl;
+    
+    // std::ofstream of("BT.txt");
+    // bt.Write(of);
+    // of.close();
 
     // Next classes: AVL, BTree
 }

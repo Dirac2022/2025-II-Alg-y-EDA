@@ -117,6 +117,8 @@ protected:
         return internal_insert(elem, ref, nullptr, rpOrigin, rpOrigin->getChildRef(branch));
     }
 public:
+    CBinaryTree(){} // Empty tree
+    
     // TODO: Copy Constructor. We have duplicate each node
     CBinaryTree(Binary &other);
     
