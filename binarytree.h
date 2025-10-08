@@ -15,10 +15,10 @@ public:
   using Node       = CBinaryTreeNode<T>;
 
 protected:
-    T       m_data;
-    Node *  m_pParent = nullptr;
-    Ref     m_ref;
-    vector<Node *> m_pChild = {nullptr, nullptr}; // 2 hijos inicializados en nullptr
+    value_type     m_data;
+    Node          *m_pParent = nullptr;
+    Ref            m_ref;
+    vector<Node *> m_pChild  = {nullptr, nullptr}; // 2 hijos inicializados en nullptr
 
 public:
     CBinaryTreeNode(Node* pParent, value_type data, Ref ref, Node* p0 = nullptr, Node* p1 = nullptr)
@@ -32,11 +32,10 @@ public:
         delete m_pChild[1]; m_pChild[1] = nullptr;
     }
 
-    // TODO: Keynode 
-    T         getData()                {   return m_data;    }
-    T        &getDataRef()             {   return m_data;    }
+    value_type  getData()                {   return m_data;    }
+    value_type &getDataRef()             {   return m_data;    }
  
-public: // TODO: Add this class as friend of the BinaryTree
+protected: // TODO: Add this class as friend of the BinaryTree
         // and make these methods private
     void      setpChild(const Node *pChild, size_t pos)  {   m_pChild[pos] = pChild;  }
     Node    * getChild(size_t branch){ return m_pChild[branch];  }
@@ -97,9 +96,19 @@ protected:
 public: 
     size_t  size()  const       { return m_size;       }
     bool    empty() const       { return size() == 0;  }
-    // TODO: insert must receive two paramaters: elem and Ref value
+
     void insert(value_type elem, Ref ref) {
         m_pRoot = internal_insert(elem, ref, nullptr, nullptr, m_pRoot);
+    }
+
+     Node* getExtremeNode(Node* startNode, int direction) const {
+        if (!startNode) return nullptr;
+        
+        Node* pNode = startNode;
+        while (pNode->getChild(direction)) {
+            pNode = pNode->getChild(direction);
+        }
+        return pNode;
     }
 
 protected:
@@ -124,7 +133,7 @@ public:
     // TODO: Copy Constructor. We have duplicate each node
     CBinaryTree(Binary &other);
     
-    // Move Constructor
+    // TODO: Done: Move Constructor
     CBinaryTree(Binary &&other)
         : m_pRoot(std::exchange(other.m_pRoot, nullptr)), 
           m_size (std::exchange(other.m_size, 0)), 
@@ -134,6 +143,20 @@ public:
     // TODO: Recursivo y seguro. Destruir Nodes recursivamente
     virtual ~CBinaryTree(){  } 
     
+    // TODO: begin dede comenzar el el nodo mas a la izquierda (0)
+    iterator begin() { 
+        if (!m_pRoot) return end();
+        return iterator(this, getExtremeNode(m_pRoot, 0));
+    }
+    iterator end()   { return iterator(this, nullptr); }
+
+    // TODO: begin debe comenzar el el nodo mas a la derecha (1)
+    // riterator rbegin(){ 
+    //     if (!m_pRoot) return rend();
+    //     return iterator(this, getExtremeNode(m_pRoot, 1));
+    //  }
+    // riterator rend()  { return iterator(this, nullptr); }
+
     // TODO: Generalizar estos recorridos para recibir cualquier funcion
     // con una cantidad flexible de parametros con variadic templates
     // Google: C++ parameter packs cplusplus

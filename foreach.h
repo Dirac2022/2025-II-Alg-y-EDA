@@ -27,10 +27,9 @@ void foreach(Container &container, Function func){
 // Variadic templates
 template<typename Iterator, typename Function, typename... Args>
 void foreach (Iterator begin, Iterator end,
-              Function func, Args const&... args)
-{   auto iter = begin;
-    for (; begin != end; ++iter)
-        std::invoke(func, args..., *iter);
+              Function func, Args const&... args){   
+    for (auto iter = begin; begin != end; ++iter)
+        std::invoke(func, *iter, args...);
 }
 
 // template<typename Callable, typename... Args>

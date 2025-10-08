@@ -149,6 +149,15 @@ public:
     
     // TODO: Read (istream &is)
     std::istream &Read (std::istream &is);
+
+    // TODO: crear foreach generico aplicando una funcion a cada elemento
+    template <typename Function, typename... Args>
+    void foreach(Function func, Args const&... args){
+        ::foreach(begin(), end(), func, args...);
+        // auto iter = begin();
+        // for(; iter != end() ; ++iter )
+        //     std::invoke(func, *iter, args...);
+    }
 };
 
 template <typename Traits>
