@@ -14,11 +14,12 @@ public:
   using value_type = typename Traits::T;
   using Node       = CBinaryTreeNode<T>;
 
-private:
+protected:
     T       m_data;
     Node *  m_pParent = nullptr;
     Ref     m_ref;
     vector<Node *> m_pChild = {nullptr, nullptr}; // 2 hijos inicializados en nullptr
+
 public:
     CBinaryTreeNode(Node* pParent, value_type data, Ref ref, Node* p0 = nullptr, Node* p1 = nullptr)
         : m_pParent(pParent), m_data(data), m_ref(ref)
@@ -47,8 +48,8 @@ template <typename Container>
 class binary_tree_iterator : public general_iterator<Container,  class binary_tree_iterator<Container> > // 
 {  
 public:
-    using Parent = class general_iterator<Container, binary_tree_iterator<Container> >;     \
-    using Node   = typename Container::Node;
+    using Parent    = class general_iterator<Container, binary_tree_iterator<Container> >;     \
+    using Node      = typename Container::Node;
     using Container = binary_tree_iterator<Container>;
 
   public:
@@ -81,7 +82,7 @@ struct BinaryTreeDescTraits
 
 template <typename Traits>
 class CBinaryTree{
-  public:
+public:
     using value_type    = typename Traits::T;
     using Node          = typename Traits::Node;
     
@@ -105,8 +106,8 @@ protected:
     Node* CreateNode(Node* pParent, value_type elem, Ref ref) {
         return new Node(pParent, elem, ref);
     }
-    Node* internal_insert(value_type &elem, Ref ref,
-                          Node* pParent, Node*& rpOrigin)
+    virtual Node* internal_insert(value_type &elem, Ref ref,
+                                  Node* pParent, Node*& rpOrigin)
     {
         if (!rpOrigin) {
             ++m_size;
@@ -114,7 +115,8 @@ protected:
         }
 
         size_t branch = Compfn(elem, rpOrigin->getDataRef()) ? 0 : 1;
-        return internal_insert(elem, ref, nullptr, rpOrigin, rpOrigin->getChildRef(branch));
+        Node *pNode = internal_insert(elem, ref, nullptr, rpOrigin, rpOrigin->getChildRef(branch));
+        return pNode;
     }
 public:
     CBinaryTree(){} // Empty tree
@@ -124,9 +126,9 @@ public:
     
     // Move Constructor
     CBinaryTree(Binary &&other)
-        : m_pRoot(std::move(other.m_pRoot)), 
-          m_size (std::move(other.m_size)), 
-          Compfn (std::move(other.Compfn))
+        : m_pRoot(std::exchange(other.m_pRoot, nullptr)), 
+          m_size (std::exchange(other.m_size, 0)), 
+          Compfn (std::exchange(other.Compfn, nullptr))
     { }
 
     // TODO: Recursivo y seguro. Destruir Nodes recursivamente
@@ -201,7 +203,7 @@ public:
         }
     }
 
-    // TODO: Tip: recorrer el arboll en preorden
+    // TODO: Tip: recorrer el arbol en preorden
     void Write(ostream &os) { os << *this;  }
 
     // TODO: Leer en el arbol desde un stream asumiendo que esta en preorden
@@ -216,7 +218,6 @@ ostream & operator<<(std::ostream &os, CBinaryTree<Traits> &obj){
     return os;
 }
 
-// TODO: Toledo Oscar
 template <typename Traits>
 istream & operator>>(istream &is, CBinaryTree<Traits> &obj){
     // Leer el arbol
