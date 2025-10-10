@@ -11,8 +11,8 @@ private:
     using    Node       = DLLNode<Traits>;
 
     // Fields go here
-    value_type          m_data;
-    Ref                 m_ref;
+    value_type          m_data{};
+    Ref                 m_ref{};
     Node               *m_pNext = nullptr;
     Node               *m_pPrev = nullptr;
 
@@ -26,7 +26,7 @@ public:
     Node * GetNext()    { return m_pNext;    }
     Node *&GetNextRef() { return m_pNext;    }
     // Diff
-    void   SetNext(Node *pNext){    m_pNext = pNext; }
+    void   SetNext(Node *pNext){ m_pNext = pNext; }
 
     // Particular para la double LinkedList
     Node * GetPrev()    { return m_pPrev;    }
@@ -50,10 +50,10 @@ class forward_double_linkedlist_iterator{
  public:
      forward_double_linkedlist_iterator(Container *pList, Node *pNode)
              : m_pList(pList), m_pNode(pNode){}
-     forward_double_linkedlist_iterator(iterator &other)
-             : m_pList(other.m_pList), m_pNode(other.m_pNode){}   
+     forward_double_linkedlist_iterator(iterator &other) // const iterator& other
+             : m_pList(other.m_pList), m_pNode(other.m_pNode){}
      bool operator==(iterator other){ return m_pList == other.m_pList && m_pNode == other.m_pNode; }
-     bool operator!=(iterator other){ return !(*this == other);    }
+     bool operator!=(iterator other){ return !(*this == other); }
 
      // Diff
      iterator operator++(){ 
@@ -78,7 +78,7 @@ class backward_double_linkedlist_iterator{
      backward_double_linkedlist_iterator(Container *pList, Node *pNode)
              : m_pList(pList), m_pNode(pNode){}
      backward_double_linkedlist_iterator(iterator &other)
-             : m_pList(other.m_pList), m_pNode(other.m_pNode){}   
+             : m_pList(other.m_pList), m_pNode(other.m_pNode){}  
      bool operator==(iterator other){ return m_pList == other.m_pList && 
                                              m_pNode == other.m_pNode;
                                     }
@@ -108,7 +108,7 @@ public:
 private:
     Node   *m_pRoot = nullptr;
     Node   *m_pTail = nullptr;
-    size_t m_nElem = 0;
+    size_t  m_nElem = 0;
     Func   m_fCompare;
 
 public:
@@ -121,18 +121,18 @@ public:
 
     // Destructor seguro
     virtual ~CDoubleLinkedList();
-
     void Insert(value_type &elem, Ref ref);
+
 private:
-    void InternalInsert(Node *&rParent, value_type &elem, Ref ref);
+    void InternalInsert(Node *&rParent, Node *pPrev, value_type &elem, Ref ref);
     Node *GetRoot()    {    return m_pRoot;     };
 
 public:
-    forward_iterator begin(){ return forward_iterator(this, m_pRoot); };
-    forward_iterator end()  { return forward_iterator(this, nullptr); } 
+    forward_iterator begin(){   return forward_iterator(this, m_pRoot); };
+    forward_iterator end()  {   return forward_iterator(this, nullptr); } 
 
     // TODO: Done verifricar donde debe comenzar apuntando el iterator reverso
-    backward_iterator rbegin(){ return backward_iterator(this, m_pTail); };
+    backward_iterator rbegin(){return backward_iterator(this, m_pTail); };
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
     friend std::ostream& operator<<(std::ostream &os, CDoubleLinkedList<Traits> &obj){
@@ -151,39 +151,39 @@ public:
     std::istream &Read (std::istream &is);
 
     // TODO: crear foreach generico aplicando una funcion a cada elemento
-    template <typename Function, typename... Args>
-    void foreach(Function func, Args const&... args){
-        ::foreach(begin(), end(), func, args...);
-        // auto iter = begin();
-        // for(; iter != end() ; ++iter )
-        //     std::invoke(func, *iter, args...);
-    }
+    //template <typename Function, typename... Args>
+    // void foreach(Function func, Args const&... args){
+    //     ::foreach(begin(), end(), func, args...);
+    //     // auto iter = begin();
+    //     // for(; iter != end() ; ++iter )
+    //     //     std::invoke(func, *iter, args...);
+    // }
 };
 
 template <typename Traits>
 void CDoubleLinkedList<Traits>::Insert(value_type &elem, Ref ref){
-    InternalInsert(m_pRoot, elem, ref);
+    InternalInsert(m_pRoot, nullptr, elem, ref);
 }
 
 // TODO: Done Agregar el enlace para el Prev()
 template <typename Traits>
-void CDoubleLinkedList<Traits>::InternalInsert(Node *&rParent, value_type &elem, Ref ref){
+void CDoubleLinkedList<Traits>::InternalInsert(Node *&rParent, Node *pPrev, value_type &elem, Ref ref){
     if( !rParent || m_fCompare(elem, rParent->GetDataRef()) ){
         Node *pNew = rParent = new Node(elem, ref, rParent);
         if( !pNew->GetNext() ) // Final de la lista
             m_pTail = pNew;
-
+        pNew->SetPrev(pPrev);
         // Puente hacia atras
         Node *pNext = pNew->GetNext();
         if( pNext ){ // Hay algo a continuacion
-            pNew ->SetPrev( pNext->GetPrev() );
+            // pNew ->SetPrev( pNext->GetPrev() );
             pNext->SetPrev( pNew ); 
         }
         m_nElem++;
         return;
     }
     // Tail recursion
-    InternalInsert(rParent->GetNextRef(), elem, ref);
+    InternalInsert(rParent->GetNextRef(), rParent, elem, ref);
 }
 
 template <typename Traits>
