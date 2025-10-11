@@ -36,7 +36,7 @@ public:
 };
 
 // 
-// TODO Activar el forward_iterator
+// todo Activar el forward_iterator
 template <typename Container>
 class forward_double_linkedlist_iterator{
  private:
@@ -123,6 +123,13 @@ public:
     virtual ~CDoubleLinkedList();
 
     void Insert(value_type &elem, Ref ref);
+    bool operator==(Container other)
+    {   
+        return m_pRoot == other.m_pRoot 
+            && m_pTail == other.m_pTail 
+            && m_nElem == other.m_nElem;
+    }
+    bool operator!=(Container other) {  return !(*this == other);  }
 private:
     void InternalInsert(Node *&rParent, Node *pRev, value_type &elem, Ref ref);
     Node *GetRoot()    {    return m_pRoot;     };
@@ -131,7 +138,7 @@ public:
     forward_iterator begin(){ return forward_iterator(this, m_pRoot); };
     forward_iterator end()  { return forward_iterator(this, nullptr); } 
 
-    // TODO: Done verifricar donde debe comenzar apuntando el iterator reverso
+    // todo: Done verifricar donde debe comenzar apuntando el iterator reverso
     backward_iterator rbegin(){ return backward_iterator(this, m_pTail); };
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
@@ -151,13 +158,13 @@ public:
     std::istream &Read (std::istream &is);
 
     // TODO: crear foreach generico aplicando una funcion a cada elemento
-    template <typename Function, typename... Args>
-    void foreach(Function func, Args const&... args){
-        ::foreach(begin(), end(), func, args...);
-        // auto iter = begin();
-        // for(; iter != end() ; ++iter )
-        //     std::invoke(func, *iter, args...);
-    }
+    // template <typename Function, typename... Args>
+    // void foreach(Function func, Args const&... args){
+    //     ::foreach(begin(), end(), func, args...);
+    //     // auto iter = begin();
+    //     // for(; iter != end() ; ++iter )
+    //     //     std::invoke(func, *iter, args...);
+    // }
 };
 
 template <typename Traits>
@@ -166,7 +173,7 @@ void CDoubleLinkedList<Traits>::Insert(value_type &elem, Ref ref){
 }
 
 
-// TODO: Done Agregar el enlace para el Prev()
+// todo: Done Agregar el enlace para el Prev()
 template <typename Traits>
 void CDoubleLinkedList<Traits>::InternalInsert(Node *&rParent, Node *pPrev, value_type &elem, Ref ref){
     if( !rParent || m_fCompare(elem, rParent->GetDataRef()) ){
@@ -193,7 +200,15 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 // TODO Constructor por copia
 //      Hacer loop copiando cada elemento
 template <typename Traits>
-CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other){
+CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other)
+{
+    Node* pCurrent = other.m_pRoot;
+    while(pCurrent) {
+        value_type elem = pCurrent->GetData();
+        Ref ref         = pCurrent->GetRef();
+        Insert(elem, ref);
+        pCurrent = pCurrent->GetNextRef();
+    }
 }
 
 // Move Constructor
