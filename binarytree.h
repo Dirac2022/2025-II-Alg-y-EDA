@@ -1,7 +1,7 @@
 #ifndef __BINARY_TREE_H__  
 #define __BINARY_TREE_H__ 
-//#include <utility>
-//#include <algorithm>
+#include <utility>
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include "types.h"
@@ -35,15 +35,12 @@ public:
         m_pChild[0] = p0;
         m_pChild[1] = p1;
     }
-    ~CBinaryTreeNode(){
-        delete m_pChild[0]; m_pChild[0] = nullptr;
-        delete m_pChild[1]; m_pChild[1] = nullptr;
-    }
+    ~CBinaryTreeNode() = default;
 
     value_type  getData()                {   return m_data;    }
     value_type &getDataRef()             {   return m_data;    }
  
-private: // TODO: Add this class as friend of the BinaryTree
+private: // todo: Add this class as friend of the BinaryTree
         // and make these methods private
     void      setpChild(Node *pChild, size_t pos)  {   m_pChild[pos] = pChild;  }
     Node    * getChild(size_t branch){ return m_pChild[branch];  }
@@ -138,6 +135,17 @@ protected:
         Node *pNode = internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
         return pNode;
     }
+
+private:
+    void destroy(Node* pNode) { // Para eliminar recursivamente los nodos
+        if (pNode) {
+            destroy(pNode->getChild(0));
+            destroy(pNode->getChild(1));
+            delete pNode;
+        }
+    }
+
+
 public:
     CBinaryTree(){} // Empty tree
     
@@ -152,7 +160,7 @@ public:
     { }
 
     // TODO: Recursivo y seguro. Destruir Nodes recursivamente
-    virtual ~CBinaryTree(){  } 
+    virtual ~CBinaryTree(){  destroy(m_pRoot);  } 
     
     // TODO: begin dede comenzar el el nodo mas a la izquierda (0)
     // iterator begin() { 
@@ -260,4 +268,4 @@ std::istream & operator>>(std::istream &is, CBinaryTree<Traits> &obj){
 
 void DemoBinaryTree();
 
-#endif // __BINARY_TREE_H__
+#endif // __BINARY_TREE_H__s
