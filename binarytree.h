@@ -5,20 +5,28 @@
 #include <cassert>
 #include <fstream>
 #include "types.h"
-//#include "util.h"
-using namespace std;
+#include <iostream> //#include "util.h"
+//#include "traits.h"
+#include <vector>
+//using namespace std;
+
+template <typename Traits>
+class CBinaryTree;
+
 
 template <typename Traits>
 class CBinaryTreeNode{
 public:
-  using value_type = typename Traits::T;
-  using Node       = CBinaryTreeNode<T>;
+    using value_type = typename Traits::value_type;
+    using Node       = CBinaryTreeNode<Traits>; // cambio de <T> a <Traits>
+
+    friend class CBinaryTree<Traits>;
 
 protected:
+    Node          *m_pParent = nullptr; // Cambie el orden
     value_type     m_data;
-    Node          *m_pParent = nullptr;
     Ref            m_ref;
-    vector<Node *> m_pChild  = {nullptr, nullptr}; // 2 hijos inicializados en nullptr
+    std::vector<Node *> m_pChild  = {nullptr, nullptr}; // 2 hijos inicializados en nullptr
 
 public:
     CBinaryTreeNode(Node* pParent, value_type data, Ref ref, Node* p0 = nullptr, Node* p1 = nullptr)
@@ -35,21 +43,23 @@ public:
     value_type  getData()                {   return m_data;    }
     value_type &getDataRef()             {   return m_data;    }
  
-protected: // TODO: Add this class as friend of the BinaryTree
+private: // TODO: Add this class as friend of the BinaryTree
         // and make these methods private
-    void      setpChild(const Node *pChild, size_t pos)  {   m_pChild[pos] = pChild;  }
+    void      setpChild(Node *pChild, size_t pos)  {   m_pChild[pos] = pChild;  }
     Node    * getChild(size_t branch){ return m_pChild[branch];  }
     Node    *&getChildRef(size_t branch){ return m_pChild[branch];  }
     Node    * getParent() { return m_pParent;   }
+
 };
 
+
 template <typename Container>
-class binary_tree_iterator : public general_iterator<Container,  class binary_tree_iterator<Container> > // 
+class binary_tree_iterator// : public general_iterator<Container, binary_tree_iterator<Container> >  
 {  
 public:
-    using Parent    = class general_iterator<Container, binary_tree_iterator<Container> >;     \
+    using Parent    = typename Container::Node; // class general_iterator<Container, binary_tree_iterator<Container> >;
     using Node      = typename Container::Node;
-    using Container = binary_tree_iterator<Container>;
+    //using Container = binary_tree_iterator<Container>; // shahows template parameter
 
   public:
     binary_tree_iterator(Container *pContainer, Node *pNode) : Parent (pContainer,pNode) {}
@@ -64,30 +74,31 @@ public:
     }
 };
 
-template <typename _T>
-struct BinaryTreeAscTraits{
-    using  T         = _T;
-    using  Node      = CBinaryTreeNode<T>;
-    using  CompareFn = less<T>;
-};
 
-template <typename _T>
-struct BinaryTreeDescTraits
-{
-    using  T         = _T;
-    using  Node      = CBinaryTreeNode<T>;
-    using  CompareFn = greater<T>;
-};
+// template <typename _T>
+// struct BinaryTreeAscTraits{
+//     using  T         = _T;
+//     using  Node      = CBinaryTreeNode<T>;
+//     using  CompareFn = less<T>;
+// };
+
+// template <typename _T>
+// struct BinaryTreeDescTraits
+// {
+//     using  T         = _T;
+//     using  Node      = CBinaryTreeNode<T>;
+//     using  CompareFn = greater<T>;
+// };
 
 template <typename Traits>
 class CBinaryTree{
 public:
-    using value_type    = typename Traits::T;
-    using Node          = typename Traits::Node;
+    using value_type    = typename Traits::value_type;
+    using Node          = CBinaryTreeNode<Traits>; // typename Traits::Node;
     
     using CompareFn     = typename Traits::CompareFn;
     using Container     = CBinaryTree<Traits>;
-    using iterator      = binary_tree_iterator<Container>;
+    // using iterator      = binary_tree_iterator<Container>;
 
 protected:
     Node    *m_pRoot = nullptr;
@@ -98,7 +109,7 @@ public:
     bool    empty() const       { return size() == 0;  }
 
     void insert(value_type elem, Ref ref) {
-        m_pRoot = internal_insert(elem, ref, nullptr, nullptr, m_pRoot);
+        m_pRoot = internal_insert(elem, ref, nullptr, m_pRoot);
     }
 
      Node* getExtremeNode(Node* startNode, int direction) const {
@@ -124,17 +135,17 @@ protected:
         }
 
         size_t branch = Compfn(elem, rpOrigin->getDataRef()) ? 0 : 1;
-        Node *pNode = internal_insert(elem, ref, nullptr, rpOrigin, rpOrigin->getChildRef(branch));
+        Node *pNode = internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
         return pNode;
     }
 public:
     CBinaryTree(){} // Empty tree
     
     // TODO: Copy Constructor. We have duplicate each node
-    CBinaryTree(Binary &other);
+    CBinaryTree(Container &other); // Cambio por Binary
     
     // TODO: Done: Move Constructor
-    CBinaryTree(Binary &&other)
+    CBinaryTree(Container &&other) // Cambio por Binary
         : m_pRoot(std::exchange(other.m_pRoot, nullptr)), 
           m_size (std::exchange(other.m_size, 0)), 
           Compfn (std::exchange(other.Compfn, nullptr))
@@ -144,11 +155,11 @@ public:
     virtual ~CBinaryTree(){  } 
     
     // TODO: begin dede comenzar el el nodo mas a la izquierda (0)
-    iterator begin() { 
-        if (!m_pRoot) return end();
-        return iterator(this, getExtremeNode(m_pRoot, 0));
-    }
-    iterator end()   { return iterator(this, nullptr); }
+    // iterator begin() { 
+    //     if (!m_pRoot) return end();
+    //     return iterator(this, getExtremeNode(m_pRoot, 0));
+    // }
+    // iterator end()   { return iterator(this, nullptr); }
 
     // TODO: begin debe comenzar el el nodo mas a la derecha (1)
     // riterator rbegin(){ 
@@ -160,9 +171,9 @@ public:
     // TODO: Generalizar estos recorridos para recibir cualquier funcion
     // con una cantidad flexible de parametros con variadic templates
     // Google: C++ parameter packs cplusplus
-        void inorder  (ostream &os)    {   inorder  (m_pRoot, 0, os);  }
+        void inorder  (std::ostream &os)    {   inorder  (m_pRoot, 0, os);  }
     // TODO: 
-    void inorder(Node  *pNode, size_t level, ostream &os){
+    void inorder(Node  *pNode, size_t level, std::ostream &os){
         if( pNode ){
             //Node *pParent = pNode->getParent();
             inorder(pNode->getChild(0), level+1, os);
@@ -195,7 +206,7 @@ public:
         }
     }
     // TODO: generalize this function to apply any function
-    void postorder(Node  *pNode, size_t level, ostream &os){
+    void postorder(Node  *pNode, size_t level, std::ostream &os){
         if( pNode ){   
             postorder(pNode->getChild(0), level+1, os);
             postorder(pNode->getChild(1), level+1, os);
@@ -204,9 +215,9 @@ public:
     }
 
     // TODO: Generalize this function to apply any function
-    void preorder (ostream &os)    {   preorder (m_pRoot, 0, os);  }
+    void preorder (std::ostream &os)    {   preorder (m_pRoot, 0, os);  }
     // TODO: Generalize this function to apply any function
-    void preorder(Node  *pNode, size_t level, ostream &os){
+    void preorder(Node  *pNode, size_t level, std::ostream &os){
         if( pNode ){   
             os << " --> " << pNode->getDataRef();
             preorder(pNode->getChild(0), level+1, os);
@@ -214,35 +225,35 @@ public:
         }
     }
 
-    void print    (ostream &os)    {   print    (m_pRoot, 0, os);  }
+    void print    (std::ostream &os)    {   print    (m_pRoot, 0, os);  }
     // TODO: generalize this function to apply any function
     // Google: C++ parameter packs cplusplus
-    void print(Node  *pNode, size_t level, ostream &os){
+    void print(Node  *pNode, size_t level, std::ostream &os){
         if( pNode ){
             Node *pParent = pNode->getParent();
             print(pNode->getChild(1), level+1, os);
-            os << string(" | ") * level << pNode->getDataRef() << "(" << (pParent?to_string(pParent->getData()):"Root") << ")" <<endl;
+            os << std::string(" | ") << level << pNode->getDataRef() << "(" << (pParent?to_string(pParent->getData()):"Root") << ")" <<std::endl; // cambio << por *
             print(pNode->getChild(0), level+1, os);
         }
     }
 
     // TODO: Tip: recorrer el arbol en preorden
-    void Write(ostream &os) { os << *this;  }
+    void Write(std::ostream &os) { os << *this;  }
 
     // TODO: Leer en el arbol desde un stream asumiendo que esta en preorden
-    void Read(istream &is)  { /* TODO */  }
+    void Read(std::istream &is)  { /* TODO */  }
 };
 
 // TODO: este operator << debe seguir estando fuera de la clase
 template <typename Traits>
-ostream & operator<<(std::ostream &os, CBinaryTree<Traits> &obj){
+std::ostream & operator<<(std::ostream &os, CBinaryTree<Traits> &obj){
     os << "CBinaryTree with " << obj.size() << " elements.";
     obj.inorder(os);
     return os;
 }
 
 template <typename Traits>
-istream & operator>>(istream &is, CBinaryTree<Traits> &obj){
+std::istream & operator>>(std::istream &is, CBinaryTree<Traits> &obj){
     // Leer el arbol
     return is;
 }
