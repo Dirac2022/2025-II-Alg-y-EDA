@@ -13,6 +13,8 @@
 template <typename Traits>
 class CBinaryTree;
 
+template <typename Container>
+class binary_tree_iterator;
 
 template <typename Traits>
 class CBinaryTreeNode{
@@ -21,6 +23,7 @@ public:
     using Node       = CBinaryTreeNode<Traits>; // cambio de <T> a <Traits>
 
     friend class CBinaryTree<Traits>;
+    template <typename> friend class binary_tree_iterator;
 
 protected:
     Node          *m_pParent = nullptr; // Cambie el orden
@@ -54,20 +57,56 @@ template <typename Container>
 class binary_tree_iterator// : public general_iterator<Container, binary_tree_iterator<Container> >  
 {  
 public:
-    using Parent    = typename Container::Node; // class general_iterator<Container, binary_tree_iterator<Container> >;
-    using Node      = typename Container::Node;
+    // using Parent    = typename Container::Node; // class general_iterator<Container, binary_tree_iterator<Container> >;
+    // using Node      = typename Container::Node;
+    using Node          = typename Container::Node;
+    using value_type    = typename Container::value_type;
     //using Container = binary_tree_iterator<Container>; // shahows template parameter
-
-  public:
-    binary_tree_iterator(Container *pContainer, Node *pNode) : Parent (pContainer,pNode) {}
-    binary_tree_iterator(Container &other)  : Parent (other) {}
-    binary_tree_iterator(Container &&other) : Parent(other) {} // Move constructor C++11 en adelante
+private:
+    Container* m_pTree;
+    Node* m_pNode;
 
 public:
+
+    binary_tree_iterator(Container* pTree=nullptr, Node* pNode=nullptr)
+        : m_pTree(pTree)
+        , m_pNode(pNode) {}
+
+//   public:
+//     binary_tree_iterator(Container *pContainer, Node *pNode) : Parent (pContainer,pNode) {}
+//     binary_tree_iterator(Container &other)  : Parent (other) {}
+//     binary_tree_iterator(Container &&other) : Parent(other) {} // Move constructor C++11 en adelante
+
+public:
+
+    value_type& operator*() {
+        assert(m_pNode != nullptr);
+        return m_pNode->getDataRef();
+    }
+
     // TODO: Revisar el avance de un iterator
-    binary_tree_iterator operator++() {
-        Parent::m_pNode = Parent::m_pNode ? (Node*)Parent::m_pNode->getpNext() : nullptr;
+    binary_tree_iterator& operator++() {
+        if (!m_pNode) return *this;
+
+        if (m_pNode->getChild(1))
+            m_pNode = m_pTree->getExtremeNode(m_pNode->getChild(1), 0);
+        else {
+            Node* pChild = m_pNode;
+            m_pNode = m_pNode->getParent();
+            while (m_pNode && m_pNode->getChild(1) == pChild) {
+                pChild = m_pNode;
+                m_pNode = m_pNode->getParent();
+            }
+        }
         return *this;
+    }
+
+    bool operator==(const binary_tree_iterator& other) const {
+        return m_pNode == other.m_pNode;
+    }
+
+    bool operator!=(const binary_tree_iterator& other) const {
+        return m_pNode != other.m_pNode;
     }
 };
 
@@ -95,7 +134,7 @@ public:
     
     using CompareFn     = typename Traits::CompareFn;
     using Container     = CBinaryTree<Traits>;
-    // using iterator      = binary_tree_iterator<Container>;
+    using iterator      = binary_tree_iterator<Container>;
 
 protected:
     Node    *m_pRoot = nullptr;
@@ -162,7 +201,7 @@ private:
 public:
     CBinaryTree(){} // Empty tree
     
-    // TODO: Copy Constructor. We have duplicate each node
+    // todo: Copy Constructor. We have duplicate each node
     CBinaryTree(const Container& other) {
         m_pRoot = copyNodes(other.m_pRoot, nullptr);
         m_size = other.m_size;
@@ -180,11 +219,11 @@ public:
     virtual ~CBinaryTree(){  destroy(m_pRoot);  } 
     
     // TODO: begin dede comenzar el el nodo mas a la izquierda (0)
-    // iterator begin() { 
-    //     if (!m_pRoot) return end();
-    //     return iterator(this, getExtremeNode(m_pRoot, 0));
-    // }
-    // iterator end()   { return iterator(this, nullptr); }
+    iterator begin() { 
+        if (!m_pRoot) return end();
+        return iterator(this, getExtremeNode(m_pRoot, 0));
+    }
+    iterator end()   { return iterator(this, nullptr); }
 
     // TODO: begin debe comenzar el el nodo mas a la derecha (1)
     // riterator rbegin(){ 
