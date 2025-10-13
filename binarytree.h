@@ -106,7 +106,8 @@ public:
     bool    empty() const       { return size() == 0;  }
 
     void insert(value_type elem, Ref ref) {
-        m_pRoot = internal_insert(elem, ref, nullptr, m_pRoot);
+        //m_pRoot = internal_insert(elem, ref, nullptr, m_pRoot);
+        internal_insert(elem, ref, nullptr, m_pRoot);
     }
 
      Node* getExtremeNode(Node* startNode, int direction) const {
@@ -123,17 +124,20 @@ protected:
     Node* CreateNode(Node* pParent, value_type elem, Ref ref) {
         return new Node(pParent, elem, ref);
     }
-    virtual Node* internal_insert(value_type &elem, Ref ref,
+    virtual void internal_insert(value_type &elem, Ref ref,
                                   Node* pParent, Node*& rpOrigin)
     {
         if (!rpOrigin) {
             ++m_size;
-            return (rpOrigin = CreateNode(pParent, elem, ref));
+            //return (rpOrigin = CreateNode(pParent, elem, ref));
+            rpOrigin = CreateNode(pParent, elem, ref);
+            return;
         }
 
         size_t branch = Compfn(elem, rpOrigin->getDataRef()) ? 0 : 1;
-        Node *pNode = internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
-        return pNode;
+        //Node *pNode = internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
+        //return pNode;
+        internal_insert(elem, ref, rpOrigin, rpOrigin->getChildRef(branch));
     }
 
 private:
@@ -145,21 +149,34 @@ private:
         }
     }
 
+    Node* copyNodes(Node* pOtherNode, Node* pParent) {
+        if (!pOtherNode)
+            return nullptr;
+        Node* pNewNode = CreateNode(pParent, pOtherNode->getData(), pOtherNode->m_ref);
+        pNewNode->setpChild(copyNodes(pOtherNode->getChild(0), pNewNode), 0);
+        pNewNode->setpChild(copyNodes(pOtherNode->getChild(1), pNewNode), 1);
+        return pNewNode;
+    }
+
 
 public:
     CBinaryTree(){} // Empty tree
     
     // TODO: Copy Constructor. We have duplicate each node
-    CBinaryTree(Container &other); // Cambio por Binary
+    CBinaryTree(const Container& other) {
+        m_pRoot = copyNodes(other.m_pRoot, nullptr);
+        m_size = other.m_size;
+        Compfn = other.Compfn;
+    }
     
-    // TODO: Done: Move Constructor
+    // todo: Done: Move Constructor
     CBinaryTree(Container &&other) // Cambio por Binary
         : m_pRoot(std::exchange(other.m_pRoot, nullptr)), 
           m_size (std::exchange(other.m_size, 0)), 
-          Compfn (std::exchange(other.Compfn, nullptr))
+          Compfn (std::move(other.Compfn)) // se cambio por exchange
     { }
 
-    // TODO: Recursivo y seguro. Destruir Nodes recursivamente
+    // todo: Recursivo y seguro. Destruir Nodes recursivamente
     virtual ~CBinaryTree(){  destroy(m_pRoot);  } 
     
     // TODO: begin dede comenzar el el nodo mas a la izquierda (0)
@@ -179,7 +196,7 @@ public:
     // TODO: Generalizar estos recorridos para recibir cualquier funcion
     // con una cantidad flexible de parametros con variadic templates
     // Google: C++ parameter packs cplusplus
-        void inorder  (std::ostream &os)    {   inorder  (m_pRoot, 0, os);  }
+    void inorder  (std::ostream &os)    {   inorder  (m_pRoot, 0, os);  }
     // TODO: 
     void inorder(Node  *pNode, size_t level, std::ostream &os){
         if( pNode ){
