@@ -283,7 +283,7 @@ public:
     void inorder(std::ostream &os){
         inorder([&os](value_type &data){    os << " --> " << data;  });
     }
-    // TODO:
+    // todo:
     // void inorder(Node *pNode, size_t level, std::ostream &os)
     // {
     //     if (pNode)
@@ -295,7 +295,12 @@ public:
     //     }
     // }
 
-    // TODO: Generalize this function by using iterators and apply any function
+    // todo: Generalize this function by using iterators and apply any function
+    template <typename Function, typename... Args>
+    void foreachInorder(Function func, Args&... args) {
+        for(auto it = begin(); it != end(); ++it)
+            func(*it, args...);       
+    }
     // template <typename Func>
     // void inorder(Func visit) { internal_inorder(m_pRoot, visit); }
     // void inorder(Node *pNode, void (*visit)(value_type &item))
