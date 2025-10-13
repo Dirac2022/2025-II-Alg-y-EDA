@@ -84,7 +84,7 @@ public:
         return m_pNode->getDataRef();
     }
 
-    // TODO: Revisar el avance de un iterator
+    // todo: Revisar el avance de un iterator
     binary_tree_iterator& operator++() {
         if (!m_pNode) return *this;
 
@@ -106,7 +106,7 @@ public:
     }
 
     bool operator!=(const binary_tree_iterator& other) const {
-        return m_pNode != other.m_pNode;
+        return !(*this == other);
     }
 };
 
@@ -218,7 +218,7 @@ public:
     // todo: Recursivo y seguro. Destruir Nodes recursivamente
     virtual ~CBinaryTree(){  destroy(m_pRoot);  } 
     
-    // TODO: begin dede comenzar el el nodo mas a la izquierda (0)
+    // todo: begin dede comenzar el el nodo mas a la izquierda (0)
     iterator begin() { 
         if (!m_pRoot) return end();
         return iterator(this, getExtremeNode(m_pRoot, 0));
