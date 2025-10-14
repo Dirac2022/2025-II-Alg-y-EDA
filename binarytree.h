@@ -9,13 +9,16 @@
 // #include "traits.h"
 #include <vector>
 #include <string>
-// using namespace std;
+#include <cmath>
 
 template <typename Traits>
 class CBinaryTree;
 
 template <typename Container>
 class binary_tree_iterator;
+
+template <typename Container>
+class binary_tree_reverse_iterator;
 
 template <typename Traits>
 class CBinaryTreeNode
@@ -27,6 +30,8 @@ public:
     friend class CBinaryTree<Traits>;
     template <typename>
     friend class binary_tree_iterator;
+    template <typename>
+    friend class binary_tree_reverse_iterator;
 
 protected:
     Node *m_pParent = nullptr; // Cambie el orden
@@ -115,6 +120,51 @@ public:
     }
 };
 
+
+template <typename Container>
+class binary_tree_reverse_iterator
+{
+public:
+    using Node          = typename Container::Node;
+    using value_type    = typename Container::value_type;
+
+private:
+    Container* m_pTree;
+    Node* m_pNode;
+
+public:
+    binary_tree_reverse_iterator(Container* pTree = nullptr, Node* pNode = nullptr)
+        : m_pTree(pTree), m_pNode(pNode) {}
+
+    value_type& operator*() {
+        assert(m_pNode != nullptr);
+        return m_pNode->getDataRef();
+    }
+
+    binary_tree_reverse_iterator& operator++() {
+        if (!m_pNode) return *this;
+
+        if (m_pNode->getChild(0))
+            m_pNode = m_pTree->getExtremeNode(m_pNode->getChild(0), 1);
+        else {
+            Node* pChild = m_pNode;
+            m_pNode = m_pNode->getParent();
+            while (m_pNode && m_pNode->getChild(0) == pChild) {
+                pChild = m_pNode;
+                m_pNode = m_pNode->getParent();
+            }
+        }
+        return *this;
+    }
+
+    bool operator==(const binary_tree_reverse_iterator& other) const {
+        return m_pNode == other.m_pNode;
+    }
+
+    bool operator!=(const binary_tree_reverse_iterator& other) const {
+        return !(   *this == other  );
+    }
+};
 // template <typename _T>
 // struct BinaryTreeAscTraits{
 //     using  T         = _T;
@@ -137,9 +187,10 @@ public:
     using value_type = typename Traits::value_type;
     using Node = CBinaryTreeNode<Traits>; // typename Traits::Node;
 
-    using CompareFn = typename Traits::CompareFn;
-    using Container = CBinaryTree<Traits>;
-    using iterator = binary_tree_iterator<Container>;
+    using CompareFn     = typename Traits::CompareFn;
+    using Container     = CBinaryTree<Traits>;
+    using iterator      = binary_tree_iterator<Container>;
+    using riterator     = binary_tree_reverse_iterator<Container>;
 
 protected:
     Node *m_pRoot = nullptr;
@@ -284,11 +335,12 @@ public:
     iterator end() { return iterator(this, nullptr); }
 
     // TODO: begin debe comenzar el el nodo mas a la derecha (1)
-    // riterator rbegin(){
-    //     if (!m_pRoot) return rend();
-    //     return iterator(this, getExtremeNode(m_pRoot, 1));
-    //  }
-    // riterator rend()  { return iterator(this, nullptr); }
+    riterator rbegin() {
+        if (!m_pRoot) return rend();
+        return riterator(this, getExtremeNode(m_pRoot, 1));
+    }
+
+    riterator rend() {   return riterator(this, nullptr);    }
 
     // todo: Generalizar estos recorridos para recibir cualquier funcion
     // con una cantidad flexible de parametros con variadic templates
@@ -442,6 +494,23 @@ std::istream &operator>>(std::istream &is, CBinaryTree<Traits> &obj)
     return is;
 }
 
+
+// std::vector<std::vector<int>> generateIndices(size_t level) {
+//     std::vector<std::vector<int>> indices(level);
+//     int start{ 0 };
+//     int end = static_cast<int>(std::pow(2, level)) - 1;
+//     int step_index{ 2 };
+//     int stepVector{ 1 };
+
+//     for(std::vector<int> indices_level : indices) {
+//         for (int i = start; i <  end; i+=step_index) {
+//             indices_level.push_back(i);
+//         }
+//         stepVector *= 2;
+//         step_index *= 2;
+//     }
+// }
+
 void DemoBinaryTree();
 
-#endif // __BINARY_TREE_H__s
+#endif // __BINARY_TREE_H__
