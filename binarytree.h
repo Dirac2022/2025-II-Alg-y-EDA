@@ -212,13 +212,13 @@ private:
     }
 
     template <typename Function, typename... Args>
-    void internal_inorder(Node *pNode, Function &func, Args &...args)
+    void internal_inorder(Node *pNode, size_t level, Function &func, Args &...args)
     {
         if (pNode)
         {
-            internal_inorder(pNode->getChild(0), func, args...);
-            func(pNode->getDataRef(), args...);
-            internal_inorder(pNode->getChild(1), func, args...);
+            internal_inorder(pNode->getChild(0), level + 1, func, args...);
+            func(pNode->getDataRef(), level, args...);
+            internal_inorder(pNode->getChild(1), level + 1, func, args...);
         }
     }
 
@@ -230,6 +230,14 @@ private:
     //         internal_inorder(pNode->getChild(0), visit);
     //         visit(pNode->getDataRef());
     //         internal_inorder(pNode->getChild(1), visit);
+    //     }
+    // }
+    // template <typename Function, typename... Args>
+    // void internal_preorder(Node* pNode, Function& func, Args&... args) {
+    //     if (pNode) {
+    //         func(pNode->getDataRef(), args...);
+    //         internal_preorder(pNode->getChild(0), func, args...);
+    //         internal_preorder(pNode->getChild(1), func, args...);
     //     }
     // }
 
@@ -276,12 +284,12 @@ public:
     // Google: C++ parameter packs cplusplus
     template <typename Function, typename... Args>
     void inorder(Function func, Args &...args) {
-        internal_inorder(m_pRoot, func, args...);
+        internal_inorder(m_pRoot, 0, func, args...);
     }
 
     // Para poder usar bt.inorder(std::cout)
     void inorder(std::ostream &os){
-        inorder([&os](value_type &data){    os << " --> " << data;  });
+        inorder([&os](value_type &data, size_t){    os << " --> " << data;  });
     }
     // todo:
     // void inorder(Node *pNode, size_t level, std::ostream &os)
@@ -332,28 +340,33 @@ public:
         }
     }
     // TODO: generalize this function to apply any function
-    void postorder(Node *pNode, size_t level, std::ostream &os)
-    {
-        if (pNode)
-        {
-            postorder(pNode->getChild(0), level + 1, os);
-            postorder(pNode->getChild(1), level + 1, os);
-            os << " --> " << pNode->getDataRef();
-        }
-    }
+    // void postorder(Node *pNode, size_t level, std::ostream &os)
+    // {
+    //     if (pNode)
+    //     {
+    //         postorder(pNode->getChild(0), level + 1, os);
+    //         postorder(pNode->getChild(1), level + 1, os);
+    //         os << " --> " << pNode->getDataRef();
+    //     }
+    // }
 
     // TODO: Generalize this function to apply any function
-    void preorder(std::ostream &os) { preorder(m_pRoot, 0, os); }
+    // void preorder(std::ostream &os) { preorder(m_pRoot, 0, os); }
+    // template <typename Function, typename... Args>
+    //     void preorder(Function func, Args&... args) {
+    //         internal_preorder(m_pRoot, func, args...);
+    //     }
     // TODO: Generalize this function to apply any function
-    void preorder(Node *pNode, size_t level, std::ostream &os)
-    {
-        if (pNode)
-        {
-            os << " --> " << pNode->getDataRef();
-            preorder(pNode->getChild(0), level + 1, os);
-            preorder(pNode->getChild(1), level + 1, os);
-        }
-    }
+
+    // void preorder(Node *pNode, size_t level, std::ostream &os)
+    // {
+    //     if (pNode)
+    //     {
+    //         os << " --> " << pNode->getDataRef();
+    //         preorder(pNode->getChild(0), level + 1, os);
+    //         preorder(pNode->getChild(1), level + 1, os);
+    //     }
+    // }
 
     void print(std::ostream &os) { print(m_pRoot, 0, os); }
     // TODO: generalize this function to apply any function
