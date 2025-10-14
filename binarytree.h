@@ -232,14 +232,14 @@ private:
     //         internal_inorder(pNode->getChild(1), visit);
     //     }
     // }
-    // template <typename Function, typename... Args>
-    // void internal_preorder(Node* pNode, Function& func, Args&... args) {
-    //     if (pNode) {
-    //         func(pNode->getDataRef(), args...);
-    //         internal_preorder(pNode->getChild(0), func, args...);
-    //         internal_preorder(pNode->getChild(1), func, args...);
-    //     }
-    // }
+    template <typename Function, typename... Args>
+    void internal_preorder(Node* pNode, size_t level, Function& func, Args&... args) {
+        if (pNode) {
+            func(pNode->getDataRef(), level, args...);
+            internal_preorder(pNode->getChild(0), level + 1, func, args...);
+            internal_preorder(pNode->getChild(1), level + 1, func, args...);
+        }
+    }
 
 public:
     CBinaryTree() {} // Empty tree
@@ -356,8 +356,14 @@ public:
     //     void preorder(Function func, Args&... args) {
     //         internal_preorder(m_pRoot, func, args...);
     //     }
-    // TODO: Generalize this function to apply any function
+    void preorder(std::ostream &os) {
+        preorder([&os](value_type& data, size_t){ os  << " --> " << data; });
+    }
 
+
+    // TODO: Generalize this function to apply any function
+    template <typename Function, typename... Args>
+    void preorder(Function func, Args&... args) {   internal_preorder(m_pRoot, 0, func, args...);   }
     // void preorder(Node *pNode, size_t level, std::ostream &os)
     // {
     //     if (pNode)
