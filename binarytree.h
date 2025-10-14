@@ -8,6 +8,7 @@
 #include <iostream> //#include "util.h"
 // #include "traits.h"
 #include <vector>
+#include <string>
 // using namespace std;
 
 template <typename Traits>
@@ -240,6 +241,15 @@ private:
         }
     }
 
+    template <typename Function, typename... Args>
+    void internal_print(Node* pNode, size_t level, Function func, Args&... args) {
+        if (pNode) {
+            internal_print(pNode->getChild(1), level + 1, func, args...);
+            func(pNode, level, args...);
+            internal_print(pNode->getChild(0), level + 1, func, args...);
+        }
+    }
+
 
 
 public:
@@ -280,7 +290,7 @@ public:
     //  }
     // riterator rend()  { return iterator(this, nullptr); }
 
-    // TODO: Generalizar estos recorridos para recibir cualquier funcion
+    // todo: Generalizar estos recorridos para recibir cualquier funcion
     // con una cantidad flexible de parametros con variadic templates
     // Google: C++ parameter packs cplusplus
     template <typename Function, typename... Args>
@@ -340,7 +350,7 @@ public:
             func(pNode, level);
         }
     }
-    // TODO: generalize this function to apply any function
+    // todo: generalize this function to apply any function
     // void postorder(Node *pNode, size_t level, std::ostream &os)
     // {
     //     if (pNode)
@@ -381,19 +391,33 @@ public:
     //     }
     // }
 
-    void print(std::ostream &os) { print(m_pRoot, 0, os); }
+    //void print(std::ostream &os) { print(m_pRoot, 0, os); }
     // TODO: generalize this function to apply any function
     // Google: C++ parameter packs cplusplus
-    void print(Node *pNode, size_t level, std::ostream &os)
-    {
-        if (pNode)
-        {
-            Node *pParent = pNode->getParent();
-            print(pNode->getChild(1), level + 1, os);
-            os << std::string(" | ") << level << pNode->getDataRef() << "(" << (pParent ? to_string(pParent->getData()) : "Root") << ")" << std::endl; // cambio << por *
-            print(pNode->getChild(0), level + 1, os);
-        }
+    template <typename Function, typename... Args>
+    void print(Function func, Args&... args) {  internal_print(m_pRoot, 0, func, args...);  }
+
+
+    void print(std::ostream& os) {
+        print(
+            [&os](Node* pNode, size_t level){
+                Node *pParent = pNode->getParent();
+                os  << std::string(" | ") << std::string(level, ' ')  << pNode->getDataRef()
+                   << "(" << (pParent ? std::to_string(pParent->getData()) : "Root") << ")" << std::endl; // cambio << por *
+            }
+        );
     }
+
+    // void print(Node *pNode, size_t level, std::ostream &os)
+    // {
+    //     if (pNode)
+    //     {
+    //         Node *pParent = pNode->getParent();
+    //         print(pNode->getChild(1), level + 1, os);
+    //         os << std::string(" | ") << level << pNode->getDataRef() << "(" << (pParent ? to_string(pParent->getData()) : "Root") << ")" << std::endl; // cambio << por *
+    //         print(pNode->getChild(0), level + 1, os);
+    //     }
+    // }
 
     // TODO: Tip: recorrer el arbol en preorden
     void Write(std::ostream &os) { os << *this; }
