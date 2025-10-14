@@ -222,16 +222,6 @@ private:
         }
     }
 
-    // template <typename Func>
-    // void internal_inorder(Node *pNode, Func visit)
-    // {
-    //     if (pNode)
-    //     {
-    //         internal_inorder(pNode->getChild(0), visit);
-    //         visit(pNode->getDataRef());
-    //         internal_inorder(pNode->getChild(1), visit);
-    //     }
-    // }
     template <typename Function, typename... Args>
     void internal_preorder(Node* pNode, size_t level, Function& func, Args&... args) {
         if (pNode) {
@@ -240,6 +230,17 @@ private:
             internal_preorder(pNode->getChild(1), level + 1, func, args...);
         }
     }
+
+    template <typename Function, typename... Args>
+    void internal_postorder(Node* pNode, size_t level, Function& func, Args&... args) {
+        if (pNode) {
+            internal_postorder(pNode->getChild(0), level + 1, func, args...);
+            internal_postorder(pNode->getChild(1), level + 1, func, args...);
+            func(pNode->getDataRef(), level, args...);
+        }
+    }
+
+
 
 public:
     CBinaryTree() {} // Empty tree
@@ -349,8 +350,14 @@ public:
     //         os << " --> " << pNode->getDataRef();
     //     }
     // }
+    template <typename Function, typename... Args>
+    void postorder(Function func, Args&... args) {  internal_postorder(m_pRoot, 0, func, args...); }
 
-    // TODO: Generalize this function to apply any function
+    void postorder(std::ostream& os) {
+        postorder([&os](value_type& data, size_t){  os << " --> " << data;  });
+    }
+
+    // todo: Generalize this function to apply any function
     // void preorder(std::ostream &os) { preorder(m_pRoot, 0, os); }
     // template <typename Function, typename... Args>
     //     void preorder(Function func, Args&... args) {
@@ -361,7 +368,7 @@ public:
     }
 
 
-    // TODO: Generalize this function to apply any function
+    // todo: Generalize this function to apply any function
     template <typename Function, typename... Args>
     void preorder(Function func, Args&... args) {   internal_preorder(m_pRoot, 0, func, args...);   }
     // void preorder(Node *pNode, size_t level, std::ostream &os)
