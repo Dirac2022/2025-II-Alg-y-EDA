@@ -3,3 +3,6 @@ main
 main.dSYM
 *.txt
 generated-docs/
+.vscode/**
+exercises/**
+other/**

@@ -1,7 +1,10 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 #include <iostream> // cout
+#include <cmath>
+#include <vector>
 using namespace std;
+
 
 void DemoUtil();
 
@@ -14,5 +17,9 @@ void intercambio(T &a, T &b){
 
 template <typename T>
 void Print(T &n){   cout << n << " "; }
+
+
+
+std::vector<std::vector<int>> generateIndices(size_t level);
 
 #endif

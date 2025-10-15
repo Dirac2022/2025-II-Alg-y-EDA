@@ -1,6 +1,8 @@
 #ifndef __DOUBLE_LINKEDLIST_H__
 #define __DOUBLE_LINKEDLIST_H__
 #include <iostream>
+#include <mutex>
+#include <utility>
 #include "types.h"
 #include "traits.h"
 
@@ -117,6 +119,8 @@ private:
     size_t m_nElem = 0;
     Func   m_fCompare;
 
+    mutable std::mutex m_mutex;
+
 public:
     // Constructor
     CDoubleLinkedList();
@@ -131,6 +135,7 @@ public:
     void Insert(value_type &elem, Ref ref);
     bool operator==(const Container& other) const 
     {   
+        std::scoped_lock lock(m_mutex, other.m_mutex);
         return m_pRoot == other.m_pRoot 
             && m_pTail == other.m_pTail 
             && m_nElem == other.m_nElem;
@@ -170,6 +175,7 @@ public:
 
 template <typename Traits>
 void CDoubleLinkedList<Traits>::Insert(value_type &elem, Ref ref){
+    std::lock_guard<std::mutex> lock(m_mutex);
     InternalInsert(m_pRoot, nullptr, elem, ref);
 }
 
@@ -219,6 +225,7 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(const CDoubleLinkedList &other)
 {
+    std::lock_guard<std::mutex> lock(other.m_mutex);
     Node* pCurrent = other.m_pRoot;
     while(pCurrent) {
         value_type elem = pCurrent->GetData();
@@ -230,21 +237,39 @@ CDoubleLinkedList<Traits>::CDoubleLinkedList(const CDoubleLinkedList &other)
 
 // Move Constructor
 template <typename Traits>
-CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other){
+CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &&other) noexcept
+{
+    if (this == &other )    return;
+    std::lock_guard<std::mutex> lock(other.m_mutex);
     m_pRoot    = std::move(other.m_pRoot);
+    m_pTail    = std::move(other.m_pTail)
     m_nElem    = std::move(other.m_nElem);
     m_fCompare = std::move(other.m_fCompare);
+
+    other.m_pRoot = nullptr;
+    other.m_pTail = nullptr;
+    other.m_nElem = 0;
 }
 
 // TODO: Implementar y liberar la memoria de cada Node
 template <typename Traits>
 CDoubleLinkedList<Traits>::~CDoubleLinkedList()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    Node* pCurrent = m_pRoot;
+    while (pCurrent) {
+        Node* pNext = pCurrent->GetNext();
+        delete pCurrent;
+        pCurrent = pNext;
+    }
+    m_pRoot = m_pTail = nullptr;
+    m_nElem = 0;
 }
 
 // todo: Este operador debe quedar fuera de la clase
 template <typename Traits>
 std::ostream &operator<<(std::ostream &os, CDoubleLinkedList<Traits> &obj){
+    std::lock_guard<std::mutex> lock(obj.m_mutex);
     auto pRoot = obj.m_pRoot;
     while( pRoot ) {
         os << pRoot->GetData() << " ";

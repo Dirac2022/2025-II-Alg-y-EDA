@@ -10,6 +10,45 @@
 
 // TODO (Nivel 2): Agregar Iterators (forward, backward)
 
+template <typename Container>
+class ForwardIterator {
+
+public:
+    using value_type = typename Container::value_type;
+    using iterator   = ForwardIterator;
+
+    value_type* m_ptr{};
+
+    // ForwardIterator() : m_prt(nullptr) {}
+    ForwardIterator(value_type* ptr) : m_ptr(ptr) {}
+
+    value_type& operator*() const { return *m_ptr; }
+    //value_type& operator->() const { return m_ptr; }
+
+    // Pre-incremento
+    iterator& operator++() {
+        ++m_ptr;
+        return *this;
+    }
+
+    // Post-incremento
+    iterator operator++(int) {
+        iterator temp = *this;
+        ++m_ptr;
+        return temp;
+    }
+
+    // Operadores de comparacion
+    bool operator==(const iterator& other) const {
+        return m_ptr == other.m_ptr;
+    }
+
+    bool operator!=(const iterator& other) const {
+        return m_ptr != other.m_ptr;
+    }
+};
+
+
 // TODO (Nivel 1): Agregar Documentacion para generar con doxygen
 
 // TODO  (Nivel 2): Agregar control de concurrencia en todo el vector
@@ -22,7 +61,8 @@
 template <typename Traits>
 class CVector{
 public:
-    using value_type = typename Traits::value_type;
+    using value_type      = typename Traits::value_type;
+    using forwardIterator = ForwardIterator<CVector<Traits>>;
 
 private:
     /**
@@ -71,7 +111,7 @@ public:
     *   @brief Insert a new element at the end of the vector
     *   @param elem element to insert
     */
-    void insert(value_type &elem);
+    void insert(value_type&& elem);
 
     /**
     *   @brief Overload operator [] to access elements in the vector
@@ -101,6 +141,15 @@ private:
     *   @brief Destroy the CVector object, used in destructor and Init
     */
     void Destroy();
+
+public:
+    forwardIterator begin() {
+        return forwardIterator(m_pVect);
+    }
+    
+    forwardIterator end() {
+        return forwardIterator(m_pVect + m_count);
+    }
 };
 
 template <typename Traits>
@@ -122,7 +171,7 @@ CVector<Traits>::CVector(CVector &v)
 template <typename Traits>
 void CVector<Traits>::resize(){
     value_type *pTmp = new value_type[m_max+10];
-    for(auto i=0; i < m_max ; ++i)
+    for(size_t i=0; i < m_max ; ++i)
         pTmp[i] = m_pVect[i];
     delete [] m_pVect;
     m_max += 10;
@@ -150,7 +199,7 @@ void CVector<Traits>::Destroy(){
 
 // TODO (ya está hecha): la funcion insert debe permitir que el vector crezca si ha desbordado
 template <typename Traits>
-void CVector<Traits>::insert(value_type &elem){
+void CVector<Traits>::insert(value_type&& elem){
     if(m_count == m_max)
         resize();
     m_pVect[m_count++] = elem;
@@ -158,9 +207,12 @@ void CVector<Traits>::insert(value_type &elem){
 
 template <typename Traits>
 typename CVector<Traits>::value_type& CVector<Traits>::operator[](size_t index) {
-    if (index >= m_count) {
-        throw std::out_of_range("Index out of range");
+    if (index > m_count) {
+        throw std::out_of_range("Index out of range. Array has " 
+                                + std::to_string(m_max) + " limits. Index is " 
+                                + std::to_string(index) + " and m_count is " + std::to_string(m_count));
     }
+    ++m_count;
     return m_pVect[index];
 }
 

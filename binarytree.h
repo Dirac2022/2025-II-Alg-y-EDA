@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <queue>
+#include <sstream>
 
 template <typename Traits>
 class CBinaryTree;
@@ -51,7 +53,7 @@ public:
     value_type getData() { return m_data; }
     value_type &getDataRef() { return m_data; }
 
-private: // todo: Add this class as friend of the BinaryTree
+protected: // todo: Add this class as friend of the BinaryTree // ya no private por AVL
          // and make these methods private
     void setpChild(Node *pChild, size_t pos) { m_pChild[pos] = pChild; }
     Node *getChild(size_t branch) { return m_pChild[branch]; }
@@ -63,11 +65,8 @@ template <typename Container>
 class binary_tree_iterator // : public general_iterator<Container, binary_tree_iterator<Container> >
 {
 public:
-    // using Parent    = typename Container::Node; // class general_iterator<Container, binary_tree_iterator<Container> >;
-    // using Node      = typename Container::Node;
     using Node = typename Container::Node;
     using value_type = typename Container::value_type;
-    // using Container = binary_tree_iterator<Container>; // shahows template parameter
 private:
     Container *m_pTree;
     Node *m_pNode;
@@ -75,11 +74,6 @@ private:
 public:
     binary_tree_iterator(Container *pTree = nullptr, Node *pNode = nullptr)
         : m_pTree(pTree), m_pNode(pNode) {}
-
-    //   public:
-    //     binary_tree_iterator(Container *pContainer, Node *pNode) : Parent (pContainer,pNode) {}
-    //     binary_tree_iterator(Container &other)  : Parent (other) {}
-    //     binary_tree_iterator(Container &&other) : Parent(other) {} // Move constructor C++11 en adelante
 
 public:
     value_type &operator*()
@@ -165,28 +159,13 @@ public:
         return !(   *this == other  );
     }
 };
-// template <typename _T>
-// struct BinaryTreeAscTraits{
-//     using  T         = _T;
-//     using  Node      = CBinaryTreeNode<T>;
-//     using  CompareFn = less<T>;
-// };
-
-// template <typename _T>
-// struct BinaryTreeDescTraits
-// {
-//     using  T         = _T;
-//     using  Node      = CBinaryTreeNode<T>;
-//     using  CompareFn = greater<T>;
-// };
 
 template <typename Traits>
 class CBinaryTree
 {
 public:
     using value_type = typename Traits::value_type;
-    using Node = CBinaryTreeNode<Traits>; // typename Traits::Node;
-
+    using Node = CBinaryTreeNode<Traits>;
     using CompareFn     = typename Traits::CompareFn;
     using Container     = CBinaryTree<Traits>;
     using iterator      = binary_tree_iterator<Container>;
@@ -201,7 +180,7 @@ public:
     size_t size() const { return m_size; }
     bool empty() const { return size() == 0; }
 
-    void insert(value_type elem, Ref ref)
+    virtual void insert(value_type elem, Ref ref)
     {
         // m_pRoot = internal_insert(elem, ref, nullptr, m_pRoot);
         internal_insert(elem, ref, nullptr, m_pRoot);
@@ -228,8 +207,7 @@ protected:
     virtual void internal_insert(value_type &elem, Ref ref,
                                  Node *pParent, Node *&rpOrigin)
     {
-        if (!rpOrigin)
-        {
+        if (!rpOrigin) {
             ++m_size;
             // return (rpOrigin = CreateNode(pParent, elem, ref));
             rpOrigin = CreateNode(pParent, elem, ref);
@@ -243,7 +221,7 @@ protected:
     }
 
 private:
-    void destroy(Node *pNode)
+    void destroy(Node* pNode)
     { // Para eliminar recursivamente los nodos
         if (pNode)
         {
@@ -334,7 +312,7 @@ public:
     }
     iterator end() { return iterator(this, nullptr); }
 
-    // TODO: begin debe comenzar el el nodo mas a la derecha (1)
+    // todo: begin debe comenzar el el nodo mas a la derecha (1)
     riterator rbegin() {
         if (!m_pRoot) return rend();
         return riterator(this, getExtremeNode(m_pRoot, 1));
@@ -459,6 +437,127 @@ public:
             }
         );
     }
+
+// ----------------- Helpers privados -----------------
+private:
+    // calcula la altura del subárbol (1 = raíz sola)
+    static int nodeHeight(Node* p) {
+        if (!p) return 0;
+        return 1 + std::max(nodeHeight(p->getChild(0)), nodeHeight(p->getChild(1)));
+    }
+
+    // convierte el dato del nodo a string (seguro si value_type es imprimible)
+    static std::string nodeToString(Node* p) {
+        if (!p) return std::string();
+        std::ostringstream ss;
+        ss << p->getData();
+        return ss.str();
+    }
+
+// ----------------- Método público visual -----------------
+public:
+    // Imprime el árbol en forma visual (alineado por niveles).
+    // Llama: bt.printVisual(std::cout);
+    void printVisual(std::ostream &os = std::cout) const {
+        if (!m_pRoot) {
+            os << "(empty tree)\n";
+            return;
+        }
+
+        int h = nodeHeight(m_pRoot);          // altura (niveles)
+        // recolectar string de cada nodo por nivel (BFS)
+        std::queue<Node*> q;
+        q.push(m_pRoot);
+
+        // calcular la longitud máxima de representación de nodo
+        size_t maxNodeLen = 1;
+        {
+            // un primer pase para conocer longitudes (limitado a altura h)
+            std::queue<Node*> tmp;
+            tmp.push(m_pRoot);
+            for (int level = 0; level < h; ++level) {
+                int nodesAtLevel = 1 << level;
+                for (int i = 0; i < nodesAtLevel; ++i) {
+                    Node* n = tmp.front(); tmp.pop();
+                    if (n) {
+                        maxNodeLen = std::max(maxNodeLen, nodeToString(n).size());
+                        tmp.push(n->getChild(0));
+                        tmp.push(n->getChild(1));
+                    } else {
+                        tmp.push(nullptr);
+                        tmp.push(nullptr);
+                    }
+                }
+            }
+        }
+
+        // tamaño de celda para cada "posición" (margen para números de varios dígitos)
+        const size_t cell = static_cast<size_t>(maxNodeLen) + 2; // padding
+
+        // Ancho total estimado: número de casillas en el último nivel * cell
+        size_t lastSlots = static_cast<size_t>(1) << (h - 1); // 2^(h-1)
+        size_t totalWidth = lastSlots * cell;
+
+        // Recorrido nivel por nivel y impresión
+        for (int level = 0; level < h; ++level) {
+            int nodesAtLevel = 1 << level; // 2^level
+            size_t spacing = totalWidth / nodesAtLevel; // espacio para cada "posición"
+
+            // imprimir línea de nodos
+            for (int i = 0; i < nodesAtLevel; ++i) {
+                Node* node = q.front(); q.pop();
+
+                std::string s = nodeToString(node);
+                size_t leftPad = 0;
+                if (spacing > s.size()) leftPad = (spacing - s.size()) / 2;
+
+                os << std::string(leftPad, ' ');
+                if (node) os << s;
+                else     os << std::string(s.size(), ' '); // hueco
+
+                // completar hasta spacing
+                size_t printed = leftPad + s.size();
+                if (spacing > printed) os << std::string(spacing - printed, ' ');
+
+                // encolar hijos (si node == nullptr encolamos nulls para mantener la estructura)
+                if (node) {
+                    q.push(node->getChild(0));
+                    q.push(node->getChild(1));
+                } else {
+                    q.push(nullptr);
+                    q.push(nullptr);
+                }
+            }
+            os << '\n';
+
+            // Opcional: dibujar las "ramas" '/', '\' entre este nivel y el siguiente
+            if (level < h - 1) {
+                // Para simplicidad imprimimos una sola línea de conectores aproximados.
+                // Calculamos posiciones relativas para imprimir '/' y '\' centrados entre padre e hijo.
+                std::queue<Node*> tmpQ = q; // copia del estado de la cola (sigue con 2*nodesAtLevel elementos)
+                for (int i = 0; i < nodesAtLevel; ++i) {
+                    // para cada padre tenemos dos hijos en tmpQ: left then right
+                    Node* leftChild = tmpQ.front(); tmpQ.pop();
+                    Node* rightChild = tmpQ.front(); tmpQ.pop();
+
+                    // espacio antes del conector para esta "posición"
+                    size_t spacingForPos = spacing;
+                    size_t innerPad = spacingForPos / 2;
+
+                    // imprimimos espacios hasta centro del padre - aproximado
+                    os << std::string(innerPad - 1, ' ');
+                    if (leftChild) os << '/'; else os << ' ';
+                    os << std::string(1, ' ');
+                    if (rightChild) os << '\\'; else os << ' ';
+                    // completar al spacingForPos
+                    size_t printed = (innerPad - 1) + 1 + 1 + 1;
+                    if (spacingForPos > printed) os << std::string(spacingForPos - printed, ' ');
+                }
+                os << '\n';
+            }
+        }
+    }
+
 
     // void print(Node *pNode, size_t level, std::ostream &os)
     // {
