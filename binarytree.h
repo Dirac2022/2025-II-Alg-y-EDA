@@ -12,6 +12,7 @@
 #include <cmath>
 #include <queue>
 #include <sstream>
+#include <mutex>
 
 template <typename Traits>
 class CBinaryTree;
@@ -175,14 +176,19 @@ protected:
     Node *m_pRoot = nullptr;
     size_t m_size = 0;
     CompareFn Compfn;
-
+    mutable std::mutex m_mutex;
 public:
-    size_t size() const { return m_size; }
-    bool empty() const { return size() == 0; }
+    size_t size() const { 
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_size; 
+    }
+    bool empty() const { 
+        return size() == 0; 
+    }
 
     virtual void insert(value_type elem, Ref ref)
     {
-        // m_pRoot = internal_insert(elem, ref, nullptr, m_pRoot);
+        std::lock_guard<std::mutex> lock(m_mutex);
         internal_insert(elem, ref, nullptr, m_pRoot);
     }
 
@@ -287,13 +293,14 @@ public:
     // todo: Copy Constructor. We have duplicate each node
     CBinaryTree(const Container &other)
     {
+        std::lock_guard<std::mutex> lock(other.m_mutex);
         m_pRoot = copyNodes(other.m_pRoot, nullptr);
         m_size = other.m_size;
         Compfn = other.Compfn;
     }
 
     // todo: Done: Move Constructor
-    CBinaryTree(Container &&other) // Cambio por Binary
+    CBinaryTree(Container &&other) // Cambio por Binary // como agregar mutex aqui?
         : m_pRoot(std::exchange(other.m_pRoot, nullptr)),
           m_size(std::exchange(other.m_size, 0)),
           Compfn(std::move(other.Compfn)) // se cambio por exchange
@@ -301,11 +308,15 @@ public:
     }
 
     // todo: Recursivo y seguro. Destruir Nodes recursivamente
-    virtual ~CBinaryTree() { destroy(m_pRoot); }
+    virtual ~CBinaryTree() { 
+        std::lock_guard<std::mutex> lock(m_mutex);
+        destroy(m_pRoot); 
+    }
 
     // todo: begin dede comenzar el el nodo mas a la izquierda (0)
     iterator begin()
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_pRoot)
             return end();
         return iterator(this, getExtremeNode(m_pRoot, 0));
