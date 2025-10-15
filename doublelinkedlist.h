@@ -120,7 +120,7 @@ private:
 public:
     // Constructor
     CDoubleLinkedList();
-    CDoubleLinkedList(CDoubleLinkedList &other);
+    CDoubleLinkedList(const CDoubleLinkedList &other);
 
     // TODO: Done Move Constructor
     CDoubleLinkedList(CDoubleLinkedList &&other);
@@ -129,16 +129,17 @@ public:
     virtual ~CDoubleLinkedList();
 
     void Insert(value_type &elem, Ref ref);
-    bool operator==(Container other)
+    bool operator==(const Container& other) const 
     {   
         return m_pRoot == other.m_pRoot 
             && m_pTail == other.m_pTail 
             && m_nElem == other.m_nElem;
     }
-    bool operator!=(Container other) {  return !(*this == other);  }
+    bool operator!=(const Container& other) const {  return !(*this == other);  }
     friend std::ostream &operator<< <>(std::ostream &os, CDoubleLinkedList<Traits> &obj);
 private:
     void InternalInsert(Node *&rParent, Node *pRev, value_type &elem, Ref ref);
+    void InternalInsertTail(value_type& elem, Ref ref);
     Node *GetRoot()    {    return m_pRoot;     };
 
 public:
@@ -149,14 +150,7 @@ public:
     backward_iterator rbegin(){ return backward_iterator(this, m_pTail); };
     backward_iterator rend()  { return backward_iterator(this, nullptr); } 
 
-    // friend std::ostream& operator<<(std::ostream &os, CDoubleLinkedList<Traits> &obj){
-    //     auto pRoot = obj.GetRoot();
-    //     while( pRoot ){
-    //         os << pRoot->GetData() << "(" << pRoot->GetRef() << ") ";
-    //         pRoot = pRoot->GetNext();
-    //     }
-    //     return os;
-    // }
+
 public:
     // Persistence
     std::ostream &Write(std::ostream &os) { return os << *this; }
@@ -202,18 +196,34 @@ void CDoubleLinkedList<Traits>::InternalInsert(Node *&rParent, Node *pPrev, valu
 }
 
 template <typename Traits>
+void CDoubleLinkedList<Traits>:: InternalInsertTail(value_type& elem, Ref ref) {
+    Node* pnewTail = new Node(elem, ref, nullptr);
+    if(!m_pTail)
+        m_pRoot = m_pTail = pnewTail;
+    else {
+        pnewTail->SetPrev(m_pTail);
+        m_pTail->SetNext(pnewTail);
+        m_pTail = pnewTail;
+    }
+
+    ++m_nElem;
+    
+}
+
+
+template <typename Traits>
 CDoubleLinkedList<Traits>::CDoubleLinkedList(){}
 
 // todo Constructor por copia
 //      Hacer loop copiando cada elemento
 template <typename Traits>
-CDoubleLinkedList<Traits>::CDoubleLinkedList(CDoubleLinkedList &other)
+CDoubleLinkedList<Traits>::CDoubleLinkedList(const CDoubleLinkedList &other)
 {
     Node* pCurrent = other.m_pRoot;
     while(pCurrent) {
         value_type elem = pCurrent->GetData();
         Ref ref         = pCurrent->GetRef();
-        Insert(elem, ref);
+        InternalInsertTail(elem, ref);
         pCurrent = pCurrent->GetNextRef();
     }
 }
